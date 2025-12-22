@@ -41,3 +41,19 @@ mlops-delay-service/
 ```
 ## Status
 Project setup phase. Development is ongoing.
+
+## Development Setup
+
+Create and activate a virtual environment:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+Install development tools and enable pre-commit hooks:
+
+```bash
+pip install -r requirements-dev.txt
+pre-commit install
+```
+After this setup, pre-commit hooks will run automatically on every git commit.
