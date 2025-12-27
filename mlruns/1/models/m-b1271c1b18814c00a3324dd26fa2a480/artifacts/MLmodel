@@ -1,0 +1,22 @@
+artifact_path: /Users/goncayildiz/Desktop/ad-click-prediction-service/mlruns/1/models/m-b1271c1b18814c00a3324dd26fa2a480/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.13.1
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.8.0
+mlflow_version: 3.8.0
+model_id: m-b1271c1b18814c00a3324dd26fa2a480
+model_size_bytes: 1584333
+model_uuid: m-b1271c1b18814c00a3324dd26fa2a480
+prompts: null
+run_id: 86d3ea1abe4b405aa4b0f71d94171ea4
+utc_time_created: '2025-12-26 15:09:23.180284'

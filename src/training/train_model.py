@@ -53,3 +53,5 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         print("\n--- BİLGİ: Model MLflow Registry'ye başarıyla kaydedildi! ---")
 
         return rf, xgb_final, ensemble
+        
+        
