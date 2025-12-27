@@ -1,6 +1,9 @@
 import os
 import sys
 import pandas as pd
+import matplotlib
+# KRİTİK: GUI olmayan sunucularda (GitHub Actions) hata almamak için Agg backend kullanıyoruz
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import joblib
 import mlflow
@@ -54,7 +57,7 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     X_train_res = upsampled_train.drop("Clicked on Ad", axis=1)
     y_train_res = upsampled_train["Clicked on Ad"]
 
-    # 4. BEFORE vs AFTER Analizi
+    # 4. BEFORE vs AFTER Analizi (Ekransız modda çalışır)
     run_before_after_comparison(
         X_train, y_train, X_train_res, y_train_res, X_test, y_test
     )
@@ -81,8 +84,8 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
                 "Accuracy": round(accuracy_score(y_test, p), 2),
                 "Precision": round(precision_score(y_test, p), 6),
                 "Recall": round(recall_score(y_test, p), 2),
-                "F1_Score": round(f1_score(y_test, p), 6),  # Alt tire
-                "AUC_ROC": round(roc_auc_score(y_test, pr), 4),  # Alt tire
+                "F1_Score": round(f1_score(y_test, p), 6),  # Alt tire kullanımı
+                "AUC_ROC": round(roc_auc_score(y_test, pr), 4),
             }
         )
 
@@ -94,26 +97,4 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     print("=" * 90)
 
     # 7. VISUALIZATION (Headless CI/CD Uyumluluğu)
-    metrics_list = ["Accuracy", "Precision", "Recall", "F1_Score", "AUC_ROC"]
-    colors = ["skyblue", "salmon", "lightgreen", "orange", "plum"]
-
-    for i, metric in enumerate(metrics_list):
-        plt.figure(figsize=(8, 5))
-        plt.bar(results_df["Model"], results_df[metric], color=colors[i], width=0.6)
-        plt.title(f"Metric Comparison: {metric}")
-        plt.ylim(0.7, 1.05)
-
-        # plt.show() yerine kaydet ve MLflow'a gönder
-        plot_path = f"metric_{metric.lower()}.png"
-        plt.savefig(plot_path)
-        mlflow.log_artifact(plot_path)
-        plt.close()  # Bellek temizliği
-
-    # 8. MODEL KAYDI VE ARTIFACT TESLİMATI
-    save_path = os.path.join(BASE_DIR, "final_deployment_model.pkl")
-    joblib.dump(ensemble, save_path)
-    mlflow.log_artifact(save_path)  # Deployment dosyasını MLflow'a ekle
-
-    print(
-        f"\nSüreç tamamlandı. Model ve Grafikler MLflow'a işlendi. Kayıt Yolu: {save_path}"
-    )
+    metrics_list = ["Accuracy

@@ -2,7 +2,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.utils import resample
 
-
 def analyze_and_rebalance(df):
     # Dağılım Analizi
     class_dist_df = df["Clicked on Ad"].value_counts().reset_index()
@@ -14,7 +13,11 @@ def analyze_and_rebalance(df):
     plt.figure(figsize=(6, 4))
     plt.bar(class_dist_df["Class"], class_dist_df["Count"])
     plt.title("Class Distribution Before Rebalancing")
-    plt.show()
+    
+    # KRİTİK DÜZELTME: plt.show() CI ortamında hata verdiği için kaldırıldı
+    # Grafik yerine yerel olarak kaydedilebilir veya sadece kapatılabilir
+    plt.savefig("class_distribution_before.png")
+    plt.close() # Belleği temizlemek için önemli
 
     # Upsampling
     majority = df[df["Clicked on Ad"] == 0]
