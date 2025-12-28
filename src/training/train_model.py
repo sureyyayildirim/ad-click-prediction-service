@@ -19,7 +19,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
     """
     # Parent run altında çalışabilmesi için nested=True
     with mlflow.start_run(run_name="MLOps_Level2_Pipeline", nested=True):
-        # --- PARAMETRE LOGLAMA (EKSİK OLANLAR EKLENDİ) ---
+        # --- PARAMETRE LOGLAMA ---
         mlflow.log_params(
             {
                 "upsampling": "True",
@@ -35,24 +35,22 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         rf.fit(X_train_res, y_train_res)
 
         # 2. MODEL B: Boosting (XGB) with CHECKPOINT - Kişi 2 & 3
-        # JSON yerine joblib (.pkl) kullanarak TypeError hatasını kesin çözüyoruz
         checkpoint_path = "xgb_checkpoint.pkl"
 
-        # DÜZELTME: learning_rate=0.1 eklendi (Orijinal kodla eşitleme)
         xgb_initial = XGBClassifier(n_estimators=50, learning_rate=0.1, random_state=42)
         xgb_initial.fit(X_train_res, y_train_res)
 
-        # Checkpoint Kaydı (TypeError vermemesi için joblib kullanıyoruz)
+        # Checkpoint Kaydı
         joblib.dump(xgb_initial, checkpoint_path)
-
-        # ARTIFACT KAYDI: Checkpoint dosyasını MLflow'a yükle
         mlflow.log_artifact(checkpoint_path, artifact_path="checkpoints")
 
-        # Checkpoint'ten devam etme
+        # DÜZELTME: Modeli joblib ile geri yüklüyoruz ve fit içinde xgb_model=bst olarak veriyoruz
+        loaded_xgb = joblib.load(checkpoint_path)
+        
         xgb_final = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
-        xgb_final.fit(X_train_res, y_train_res, xgb_model=checkpoint_path)
+        # loaded_xgb.get_booster() diyerek XGBoost'un anladığı ham modeli veriyoruz
+        xgb_final.fit(X_train_res, y_train_res, xgb_model=loaded_xgb.get_booster())
 
-        # PARAMETRE LOGLAMA: Checkpoint'ten devam edildiğini onayla
         mlflow.log_param("checkpoint_resumed", True)
         print(f"[Checkpoint] XGBoost model resumed from: {checkpoint_path}")
 
@@ -67,7 +65,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         print(f"\n[Validation] Ensemble Model Validation Accuracy: {val_acc:.4f}")
         mlflow.log_metric("val_accuracy", val_acc)
 
-        # 5. METRIC LOGGING (Final Test Sonuçları)
+        # 5. METRIC LOGGING
         preds = ensemble.predict(X_test)
         probs = ensemble.predict_proba(X_test)[:, 1]
 
