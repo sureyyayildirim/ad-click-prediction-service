@@ -3,7 +3,13 @@ import mlflow.sklearn
 import os
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+)
 
 
 def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
@@ -13,13 +19,15 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
     # Parent run altında çalışabilmesi için nested=True
     with mlflow.start_run(run_name="MLOps_Level2_Pipeline", nested=True):
         # --- PARAMETRE LOGLAMA (EKSİK OLANLAR EKLENDİ) ---
-        mlflow.log_params({
-            "upsampling": "True",
-            "ensemble": "VotingSoft",
-            "checkpoint_used": "True",
-            "rf_max_depth": 10,
-            "xgb_learning_rate": 0.1
-        })
+        mlflow.log_params(
+            {
+                "upsampling": "True",
+                "ensemble": "VotingSoft",
+                "checkpoint_used": "True",
+                "rf_max_depth": 10,
+                "xgb_learning_rate": 0.1,
+            }
+        )
 
         # 1. MODEL A: Bagging (RF) - Kişi 2
         rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
@@ -48,8 +56,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
 
         # 3. MODEL C: ENSEMBLE (Voting) - Kişi 2
         ensemble = VotingClassifier(
-            estimators=[('rf', rf), ('xgb', xgb_final)],
-            voting='soft'
+            estimators=[("rf", rf), ("xgb", xgb_final)], voting="soft"
         )
         ensemble.fit(X_train_res, y_train_res)
 
@@ -67,7 +74,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
             "precision": precision_score(y_test, preds),
             "recall": recall_score(y_test, preds),
             "f1_score": f1_score(y_test, preds),
-            "auc_roc": roc_auc_score(y_test, probs)
+            "auc_roc": roc_auc_score(y_test, probs),
         }
 
         print("\n" + "-" * 40)
@@ -80,9 +87,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
 
         # 6. MODEL REGISTRY
         mlflow.sklearn.log_model(
-            ensemble,
-            "final_model",
-            registered_model_name="AdClickPredictionModel"
+            ensemble, "final_model", registered_model_name="AdClickPredictionModel"
         )
 
         return rf, xgb_final, ensemble
