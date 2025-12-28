@@ -44,9 +44,9 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         joblib.dump(xgb_initial, checkpoint_path)
         mlflow.log_artifact(checkpoint_path, artifact_path="checkpoints")
 
-        # DÜZELTME: Modeli joblib ile geri yüklüyoruz ve fit içinde xgb_model=bst olarak veriyoruz
+        # DÜZELTME: Modeli joblib ile geri yüklüyoruz
         loaded_xgb = joblib.load(checkpoint_path)
-        
+
         xgb_final = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
         # loaded_xgb.get_booster() diyerek XGBoost'un anladığı ham modeli veriyoruz
         xgb_final.fit(X_train_res, y_train_res, xgb_model=loaded_xgb.get_booster())
@@ -91,3 +91,4 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         )
 
         return rf, xgb_final, ensemble
+        
