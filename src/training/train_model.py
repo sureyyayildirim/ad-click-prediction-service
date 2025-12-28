@@ -1,6 +1,7 @@
 import mlflow
 import mlflow.sklearn
 import os
+import joblib
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import (
@@ -34,14 +35,15 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         rf.fit(X_train_res, y_train_res)
 
         # 2. MODEL B: Boosting (XGB) with CHECKPOINT - Kişi 2 & 3
-        checkpoint_path = "xgb_checkpoint.json"
+        # JSON yerine joblib (.pkl) kullanarak TypeError hatasını kesin çözüyoruz
+        checkpoint_path = "xgb_checkpoint.pkl"
 
         # DÜZELTME: learning_rate=0.1 eklendi (Orijinal kodla eşitleme)
         xgb_initial = XGBClassifier(n_estimators=50, learning_rate=0.1, random_state=42)
         xgb_initial.fit(X_train_res, y_train_res)
 
-        # Checkpoint Kaydı
-        xgb_initial.save_model(checkpoint_path)
+        # Checkpoint Kaydı (TypeError vermemesi için joblib kullanıyoruz)
+        joblib.dump(xgb_initial, checkpoint_path)
 
         # ARTIFACT KAYDI: Checkpoint dosyasını MLflow'a yükle
         mlflow.log_artifact(checkpoint_path, artifact_path="checkpoints")
