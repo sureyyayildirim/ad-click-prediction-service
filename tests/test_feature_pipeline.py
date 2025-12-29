@@ -26,14 +26,14 @@ def _dummy_df():
 
 def test_build_features_importable_and_returns_df():
     try:
-        from src.features.build_features import build_features  # noqa: F401
+        from src.features.prepare_dataset import build_features  # noqa: F401
     except ModuleNotFoundError:
         pytest.skip("build_features not merged into main yet")
 
 
 def test_build_features_outputs_expected_schema():
     try:
-        from src.features.build_features import build_features
+        from src.features.prepare_dataset import build_features
     except ModuleNotFoundError:
         pytest.skip("build_features not merged into main yet")
 
