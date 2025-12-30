@@ -58,9 +58,11 @@ def build_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # 2. Time Features
     if "Timestamp" in df.columns:
-        df["Timestamp"] = pd.to_datetime(df["Timestamp"])
-        df["hour"] = df["Timestamp"].dt.hour
-        df["day_of_week"] = df["Timestamp"].dt.dayofweek
+        df["Timestamp"] = pd.to_datetime(
+            df["Timestamp"], errors="coerce"
+        )  # Hatalı tarihleri NaT yapar
+        df["hour"] = df["Timestamp"].dt.hour.fillna(0).astype(int)
+        df["day_of_week"] = df["Timestamp"].dt.dayofweek.fillna(0).astype(int)
         df["is_weekend"] = df["day_of_week"].isin([5, 6]).astype(int)
         df.drop(columns=["Timestamp"], inplace=True)
 
