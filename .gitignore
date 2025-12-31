@@ -205,4 +205,19 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
 .DS_Store
+
+# MLflow artifacts
+mlruns/
+mlflow.db
+
+# Local model/artifact outputs
+models/
+artifacts/
+
+# Common model/checkpoint files
+*.pkl
+*.joblib
+*checkpoint*.json
+xgb_checkpoint.json
