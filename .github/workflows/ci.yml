@@ -69,3 +69,7 @@ jobs:
           PYTHONPATH: .
         run: |
           python -c "import pipelines.training_pipeline; print('training_pipeline import OK')"
+
+      - name: Build Docker image (no push)
+        run: |
+          docker build -t ad-click-service:ci .
