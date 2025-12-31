@@ -24,7 +24,11 @@ if BASE_DIR not in sys.path:
 
 from src.features.prepare_dataset import build_features
 from src.training.train_model import train_full_pipeline
-from src.monitoring.quality_check import run_quality_check
+
+try:
+    from src.monitoring.quality_check import run_quality_check
+except ModuleNotFoundError:
+    run_quality_check = None
 from src.features.rebalancing import analyze_and_rebalance
 from src.evaluation.before_after_analysis import run_before_after_comparison
 
