@@ -1,14 +1,14 @@
-name: CI
+name: MLOps CI Pipeline
 
 on:
-  pull_request:
-    branches: [ "main" ]
   push:
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
 
 jobs:
-  quality:
-    name: Pre-commit + tests
+  ci:
+    name: Pre-commit + Unit Tests + Sanity Checks
     runs-on: ubuntu-latest
 
     steps:
@@ -27,16 +27,49 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
+      # pre-commit: black + basic hooks
       - name: Run pre-commit
         run: |
           pre-commit run --all-files
 
-      - name: Run tests
+      # unit tests
+      - name: Run unit tests
         env:
           PYTHONPATH: .
         run: |
           pytest -q
 
+      # data validation (data repo'daysa kontrol eder)
+      - name: Data presence & feature module sanity
+        env:
+          PYTHONPATH: .
+        run: |
+          if [ -f data/advertising.csv ]; then
+            echo "Found raw data: data/advertising.csv"
+          else
+            echo "data/advertising.csv not found"
+            exit 1
+          fi
+
+          python - << 'PY'
+          import pandas as pd
+          from src.features.prepare_dataset import build_features
+
+          df = pd.read_csv("data/advertising.csv")
+          out = build_features(df)
+
+          assert "Clicked on Ad" in out.columns, "Label column missing after build_features"
+          assert out.isna().sum().sum() == 0, "NaN values found after build_features"
+          print("build_features: data sanity OK")
+          PY
+
+      # pipeline architecture check
+      - name: Pipeline integrity (import check)
+        env:
+          PYTHONPATH: .
+        run: |
+          python -c "import pipelines.training_pipeline; print('training_pipeline import OK')"
+          
       - name: Build Docker image (no push)
         run: |
           docker build -t ad-click-service:ci .
