@@ -75,7 +75,7 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         mlflow.log_metric(f"{name}_accuracy", acc)
         mlflow.log_metric(f"{name}_f1", f1)
         mlflow.log_metric(f"{name}_auc", auc)
-        mlflow.log_metric(f"{name}_precision", pre)  # Ekstra metrik logları
+        mlflow.log_metric(f"{name}_precision", pre)
         mlflow.log_metric(f"{name}_recall", rec)
 
         results.append({
@@ -102,7 +102,7 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         plot_path = os.path.join(BASE_DIR, plot_filename)
         plt.savefig(plot_path)
         mlflow.log_artifact(plot_path)
-        plt.show() 
+        plt.close()  # Sadece bellek için bunu ekledim, mantığı bozmaz.
 
     print("\n" + "=" * 60)
     print(results_df.to_string(index=False))
