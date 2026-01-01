@@ -11,15 +11,9 @@ pytest.importorskip("xgboost")
 
 @pytest.mark.smoke
 def test_full_pipeline_flow(tmp_path, monkeypatch):
-    """
-    Feature engineering ve training kodlarını
-    sahte veri üzerinden uçtan uca test eder.
-    """
-    # 1. MLflow'u geçici bir dizine yönlendir
     tracking_dir = tmp_path / "mlruns"
     monkeypatch.setenv("MLFLOW_TRACKING_URI", f"file://{tracking_dir}")
 
-    # 2. Sahte ham veri oluştur (Hata almamak için satır sayısını 100 yaptık)
     num_samples = 100
     raw_data = pd.DataFrame(
         {
@@ -38,7 +32,6 @@ def test_full_pipeline_flow(tmp_path, monkeypatch):
         }
     )
 
-    # 3. FEATURE ENGINEERING TESTİ
     try:
         processed_df = build_features(raw_data)
     except Exception as e:
@@ -47,11 +40,9 @@ def test_full_pipeline_flow(tmp_path, monkeypatch):
     assert "is_weekend" in processed_df.columns
     assert any("hash" in col for col in processed_df.columns)
 
-    # 4. MODEL EĞİTİM TESTİ
     X = processed_df.drop("Clicked on Ad", axis=1)
     y = processed_df["Clicked on Ad"]
 
-    # Veriyi eğitim, validasyon ve test olarak ayır
     X_train, X_temp, y_train, y_temp = X[:70], X[70:], y[:70], y[70:]
     X_val, X_test, y_val, y_test = X_temp[:15], X_temp[15:], y_temp[:15], y_temp[15:]
 
@@ -60,13 +51,11 @@ def test_full_pipeline_flow(tmp_path, monkeypatch):
             X_train, y_train, X_val, y_val, X_test, y_test
         )
     except Exception as e:
-        # Eğer hata sadece XGBoost'un 'estimator_type' meselesiyse testi geçirme mantığı
         if "_estimator_type" in str(e):
             print(f"Uyarı: Teknik bir etiket hatası alındı ama model eğitildi: {e}")
         else:
             pytest.fail(f"train_full_pipeline fonksiyonu hata verdi: {e}")
-            return # Hata varsa aşağıya geçme
+            return
 
-    # 5. ÇIKTI KONTROLÜ
     assert rf is not None
     print("Smoke test başarıyla tamamlandı!")
