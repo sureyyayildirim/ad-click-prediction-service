@@ -24,11 +24,7 @@ if BASE_DIR not in sys.path:
 
 from src.features.prepare_dataset import build_features
 from src.training.train_model import train_full_pipeline
-
-try:
-    from src.monitoring.quality_check import run_quality_check
-except ModuleNotFoundError:
-    run_quality_check = None
+from src.monitoring.quality_check import run_quality_check
 from src.features.rebalancing import analyze_and_rebalance
 from src.evaluation.before_after_analysis import run_before_after_comparison
 
@@ -88,7 +84,7 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         mlflow.log_metric(f"{name}_accuracy", acc)
         mlflow.log_metric(f"{name}_f1", f1)
         mlflow.log_metric(f"{name}_auc", auc)
-        mlflow.log_metric(f"{name}_precision", pre)  # Ekstra metrik logları
+        mlflow.log_metric(f"{name}_precision", pre)
         mlflow.log_metric(f"{name}_recall", rec)
 
         results.append(
@@ -104,7 +100,6 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
 
     results_df = pd.DataFrame(results)
 
-    # --- ESKİ KODDAKİ TÜM AYRI GRAFİKLERİN EKLENDİĞİ KISIM ---
     metrics_list = ["Accuracy", "Precision", "Recall", "F1_Score", "AUC_ROC"]
     colors = ["skyblue", "salmon", "lightgreen", "orange", "plum"]
 
@@ -114,13 +109,11 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         plt.title(f"Model Comparison: {metric}")
         plt.ylim(0.7, 1.05)
 
-        # Grafik ismini oluştur ve kaydet
         plot_filename = f"{metric.lower()}_comparison.png"
         plot_path = os.path.join(BASE_DIR, plot_filename)
         plt.savefig(plot_path)
         mlflow.log_artifact(plot_path)
-        plt.show()  # İlk koddaki gibi ekrana basar
-    # ------------------------------------------------------
+        plt.close()
 
     print("\n" + "=" * 60)
     print(results_df.to_string(index=False))
