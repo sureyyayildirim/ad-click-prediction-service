@@ -8,13 +8,8 @@ import mlflow.sklearn
 from mlflow.models import infer_signature
 from prefect import flow, task
 from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    roc_auc_score,
-    precision_score,
-    recall_score,
-    confusion_matrix,
-    ConfusionMatrixDisplay,
+    accuracy_score, f1_score, roc_auc_score, precision_score,
+    recall_score, confusion_matrix, ConfusionMatrixDisplay
 )
 from sklearn.model_selection import train_test_split
 
@@ -24,11 +19,7 @@ if BASE_DIR not in sys.path:
 
 from src.features.prepare_dataset import build_features
 from src.training.train_model import train_full_pipeline
-
-try:
-    from src.monitoring.quality_check import run_quality_check
-except ModuleNotFoundError:
-    run_quality_check = None
+from src.monitoring.quality_check import run_quality_check
 from src.features.rebalancing import analyze_and_rebalance
 from src.evaluation.before_after_analysis import run_before_after_comparison
 
@@ -44,8 +35,8 @@ def ingestion_step():
 @task(name="2_Advanced_Feature_Engineering_and_Rebalancing")
 def preparation_step(raw_df):
     processed_df = build_features(raw_df)
-    X = processed_df.drop("Clicked on Ad", axis=1)
-    y = processed_df["Clicked on Ad"]
+    X = processed_df.drop('Clicked on Ad', axis=1)
+    y = processed_df['Clicked on Ad']
 
     X_train, X_temp, y_train, y_temp = train_test_split(
         X, y, test_size=0.2, stratify=y, random_state=42
@@ -59,18 +50,14 @@ def preparation_step(raw_df):
     X_train_res = upsampled_train.drop("Clicked on Ad", axis=1)
     y_train_res = upsampled_train["Clicked on Ad"]
 
-    run_before_after_comparison(
-        X_train, y_train, X_train_res, y_train_res, X_test, y_test
-    )
+    run_before_after_comparison(X_train, y_train, X_train_res, y_train_res, X_test, y_test)
 
     return X_train_res, y_train_res, X_val, y_val, X_test, y_test
 
 
 @task(name="3_Model_Training_and_Comparison")
 def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
-    rf, xgb, ensemble = train_full_pipeline(
-        X_train_res, y_train_res, X_val, y_val, X_test, y_test
-    )
+    rf, xgb, ensemble = train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test)
 
     models_dict = {"Bagging_RF": rf, "Boosting_XGB": xgb, "Ensemble_Voting": ensemble}
     results = []
@@ -91,20 +78,17 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         mlflow.log_metric(f"{name}_precision", pre)  # Ekstra metrik logları
         mlflow.log_metric(f"{name}_recall", rec)
 
-        results.append(
-            {
-                "Model": name,
-                "Accuracy": acc,
-                "Precision": pre,
-                "Recall": rec,
-                "F1_Score": f1,
-                "AUC_ROC": auc,
-            }
-        )
+        results.append({
+            "Model": name,
+            "Accuracy": acc,
+            "Precision": pre,
+            "Recall": rec,
+            "F1_Score": f1,
+            "AUC_ROC": auc
+        })
 
     results_df = pd.DataFrame(results)
 
-    # --- ESKİ KODDAKİ TÜM AYRI GRAFİKLERİN EKLENDİĞİ KISIM ---
     metrics_list = ["Accuracy", "Precision", "Recall", "F1_Score", "AUC_ROC"]
     colors = ["skyblue", "salmon", "lightgreen", "orange", "plum"]
 
@@ -114,13 +98,11 @@ def training_step(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         plt.title(f"Model Comparison: {metric}")
         plt.ylim(0.7, 1.05)
 
-        # Grafik ismini oluştur ve kaydet
         plot_filename = f"{metric.lower()}_comparison.png"
         plot_path = os.path.join(BASE_DIR, plot_filename)
         plt.savefig(plot_path)
         mlflow.log_artifact(plot_path)
-        plt.show()  # İlk koddaki gibi ekrana basar
-    # ------------------------------------------------------
+        plt.show() 
 
     print("\n" + "=" * 60)
     print(results_df.to_string(index=False))
@@ -137,7 +119,7 @@ def registry_step(ensemble, X_test, y_test):
         ensemble,
         "final_model",
         signature=signature,
-        registered_model_name="AdClickPredictionModel",
+        registered_model_name="AdClickPredictionModel"
     )
 
     y_pred = ensemble.predict(X_test)
