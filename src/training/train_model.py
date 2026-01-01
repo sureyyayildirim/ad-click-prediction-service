@@ -4,8 +4,13 @@ import os
 import joblib
 from sklearn.ensemble import RandomForestClassifier, VotingClassifier
 from xgboost import XGBClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -15,11 +20,13 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
     Model eğitimi, Checkpoint yönetimi, MLflow loglama ve Yerel Kayıt.
     """
     with mlflow.start_run(run_name="Model_Training_Subrun", nested=True):
-        mlflow.log_params({
-            "rf_n_estimators": 100,
-            "xgb_learning_rate": 0.1,
-            "ensemble_type": "Soft Voting"
-        })
+        mlflow.log_params(
+            {
+                "rf_n_estimators": 100,
+                "xgb_learning_rate": 0.1,
+                "ensemble_type": "Soft Voting",
+            }
+        )
 
         rf = RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42)
         rf.fit(X_train_res, y_train_res)
@@ -37,8 +44,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         print("XGBoost (Boosting) model trained by resuming from checkpoint.")
 
         ensemble = VotingClassifier(
-            estimators=[('rf', rf), ('xgb', xgb_final)],
-            voting='soft'
+            estimators=[("rf", rf), ("xgb", xgb_final)], voting="soft"
         )
         ensemble.fit(X_train_res, y_train_res)
         print("Ensemble (Voting) model created and trained successfully.")
@@ -49,7 +55,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         metrics = {
             "accuracy": accuracy_score(y_test, preds),
             "f1_score": f1_score(y_test, preds),
-            "auc_roc": roc_auc_score(y_test, probs)
+            "auc_roc": roc_auc_score(y_test, probs),
         }
 
         for name, val in metrics.items():
@@ -59,7 +65,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
         mlflow.sklearn.log_model(
             ensemble,
             "final_model",
-            registered_model_name="AdClickPredictionModel"
+            registered_model_name="AdClickPredictionModel",
         )
 
         model_save_path = os.path.join(BASE_DIR, "final_deployment_model.pkl")
