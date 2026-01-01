@@ -41,6 +41,7 @@ def train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test):
 
         xgb_final = XGBClassifier(n_estimators=100, learning_rate=0.1, random_state=42)
         xgb_final.fit(X_train_res, y_train_res, xgb_model=checkpoint_path)
+        xgb_final._estimator_type = "classifier"
         print("XGBoost (Boosting) model trained by resuming from checkpoint.")
 
         ensemble = VotingClassifier(
