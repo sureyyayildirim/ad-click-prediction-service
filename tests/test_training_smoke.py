@@ -68,6 +68,5 @@ def test_full_pipeline_flow(tmp_path, monkeypatch):
             return # Hata varsa aşağıya geçme
 
     # 5. ÇIKTI KONTROLÜ
-    # En azından RF veya XGB'nin eğitildiğinden emin olalım (Ensemble patlasa bile)
     assert rf is not None
     print("Smoke test başarıyla tamamlandı!")
